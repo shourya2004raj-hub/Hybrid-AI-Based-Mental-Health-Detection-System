@@ -101,8 +101,6 @@ html, body, [class*="css"]{
 
     font-weight:700;
 
-    color:#1E3A5F;
-
     text-align:center;
 }
 
@@ -111,8 +109,6 @@ html, body, [class*="css"]{
     font-size:20px;
 
     text-align:center;
-
-    color:#4B6584;
 
     margin-top:10px;
 }
@@ -123,8 +119,6 @@ html, body, [class*="css"]{
 
     font-weight:700;
 
-    color:#1E3A5F;
-
     margin-bottom:20px;
 }
 
@@ -134,8 +128,6 @@ html, body, [class*="css"]{
 
     font-weight:700;
 
-    color:#1E3A5F;
-
     margin-bottom:15px;
 }
 
@@ -144,8 +136,6 @@ html, body, [class*="css"]{
     font-size:24px;
 
     line-height:1.8;
-
-    color:#1E3A5F;
 }
 
 .stButton > button{
