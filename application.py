@@ -50,7 +50,7 @@ html, body, [class*="css"]{
 
 .main-container{
 
-    background:white;
+    background-color: var(--secondary-background-color);
 
     padding:40px;
 
@@ -63,11 +63,7 @@ html, body, [class*="css"]{
 
 .result-container{
 
-    background:linear-gradient(
-        135deg,
-        #EEF4FF,
-        #FFFFFF
-    );
+    background-color: var(--secondary-background-color);
 
     padding:35px;
 
@@ -80,11 +76,7 @@ html, body, [class*="css"]{
 
 .final-box{
 
-    background:linear-gradient(
-        135deg,
-        #DCEBFF,
-        #FFFFFF
-    );
+    background-color: var(--secondary-background-color);
 
     padding:30px;
 
