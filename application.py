@@ -211,11 +211,11 @@ st.markdown(
 def load_resources():
 
     model = load_model(
-        r"C:\Final year project\models\bilstm_model.h5"
+        "models/bilstm_model.h5"
     )
 
     with open(
-        r"C:\Final year project\models\tokenizer.pkl",
+        "models/tokenizer.pkl",
         "rb"
     ) as file:
 
