@@ -282,6 +282,16 @@ def detect_context(text):
         "excited"
     ]
 
+    negative_phrases = [
+        "under confident",
+        "not confident",
+        "low confidence",
+        "emotionally drained",
+        "mentally exhausted",
+        "feeling lonely",
+        "feeling isolated"
+    ]
+
     negative_words = [
         "worried",
         "afraid",
@@ -291,24 +301,55 @@ def detect_context(text):
         "sad",
         "depressed",
         "anxious",
-        "stressed"
+        "stressed",
+        "tired",
+        "burnout",
+        "exhausted"
     ]
 
     detected_contexts = []
 
     for context, keywords in context_map.items():
 
-        if any(word in text for word in keywords):
+        if any(
+            re.search(rf'\\b{word}\\b', text)
+            for word in keywords
+        ):
 
             detected_contexts.append(context)
 
     positive_detected = any(
-        word in text for word in positive_words
+        re.search(rf'\\b{word}\\b', text)
+        for word in positive_words
     )
 
     negative_detected = any(
-        word in text for word in negative_words
+        phrase in text
+        for phrase in negative_phrases
     )
+
+    negative_detected = (
+        negative_detected
+        or
+        any(
+            re.search(rf'\\b{word}\\b', text)
+            for word in negative_words
+        )
+    )
+
+    # ====================================
+    # NEGATION HANDLING
+    # ====================================
+
+    if (
+        "under confident" in text
+        or
+        "not confident" in text
+        or
+        "low confidence" in text
+    ):
+
+        positive_detected = False
 
     return (
         detected_contexts,
@@ -335,7 +376,7 @@ def generate_explanation(
     explanation_parts = []
 
     # ====================================
-    # PRIMARY EMOTIONAL ANALYSIS
+    # PRIMARY ANALYSIS
     # ====================================
 
     if prediction == "Stress":
@@ -357,7 +398,7 @@ def generate_explanation(
         )
 
     # ====================================
-    # CONTRADICTION HANDLING
+    # EMOTIONAL BALANCE ANALYSIS
     # ====================================
 
     if positive_detected and negative_detected:
@@ -465,6 +506,10 @@ def generate_suggestion(
 
     suggestions = []
 
+    # ====================================
+    # PRIMARY SUGGESTIONS
+    # ====================================
+
     if prediction == "Normal":
 
         suggestions.append(
@@ -483,11 +528,19 @@ def generate_suggestion(
             "Consider emotional support, healthy routines, and discussing concerns with trusted individuals."
         )
 
-    if positive_detected:
+    # ====================================
+    # POSITIVE COPING
+    # ====================================
+
+    if positive_detected and not negative_detected:
 
         suggestions.append(
             "Your response also reflects positive coping ability and emotional resilience."
         )
+
+    # ====================================
+    # CONTEXTUAL SUGGESTIONS
+    # ====================================
 
     if "career" in contexts:
 
@@ -550,6 +603,10 @@ def generate_final_conclusion(
         negative_detected
     ) = detect_context(text)
 
+    # ====================================
+    # PRIMARY CONCLUSION
+    # ====================================
+
     if prediction == "Normal":
 
         conclusion = (
@@ -567,6 +624,10 @@ def generate_final_conclusion(
         conclusion = (
             "The overall emotional analysis detected elevated emotional concern with depression-related indicators."
         )
+
+    # ====================================
+    # BALANCED INTERPRETATION
+    # ====================================
 
     if positive_detected and negative_detected:
 
@@ -586,6 +647,10 @@ def generate_final_conclusion(
             " Emotional concern indicators were consistently observed."
         )
 
+    # ====================================
+    # CONTEXT SUMMARY
+    # ====================================
+
     if contexts:
 
         conclusion += (
@@ -593,6 +658,10 @@ def generate_final_conclusion(
             + ", ".join(contexts)
             + " were identified."
         )
+
+    # ====================================
+    # CONFIDENCE ANALYSIS
+    # ====================================
 
     if confidence >= 90:
 
@@ -611,6 +680,10 @@ def generate_final_conclusion(
         conclusion += (
             " Some emotional overlap was detected during prediction."
         )
+
+    # ====================================
+    # QUESTIONNAIRE SUMMARY
+    # ====================================
 
     conclusion += (
         f" Questionnaire assessment suggested {questionnaire_level.lower()}."
