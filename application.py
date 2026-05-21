@@ -19,9 +19,8 @@ import re
 import pickle
 import numpy as np
 
-from tensorflow.keras.models import load_model  # pyright: ignore[reportMissingModuleSource]
-from tensorflow.keras.preprocessing.sequence import pad_sequences # pyright: ignore[reportMissingImports]
-
+from tensorflow.keras.models import load_model
+from tensorflow.keras.preprocessing.sequence import pad_sequences
 
 # ====================================
 # PAGE CONFIGURATION
@@ -49,112 +48,74 @@ html, body, [class*="css"]{
 }
 
 .main-container{
-
     background-color: var(--secondary-background-color);
-
     padding:40px;
-
     border-radius:22px;
-
     box-shadow:0px 6px 18px rgba(0,0,0,0.08);
-
     margin-bottom:30px;
 }
 
 .result-container{
-
     background-color: var(--secondary-background-color);
-
     padding:35px;
-
     border-radius:22px;
-
     box-shadow:0px 6px 18px rgba(0,0,0,0.08);
-
     margin-top:30px;
 }
 
 .final-box{
-
     background-color: var(--secondary-background-color);
-
     padding:30px;
-
     border-radius:22px;
-
     border-left:8px solid #4A90E2;
-
     margin-top:30px;
 }
 
 .big-title{
-
     font-size:48px;
-
     font-weight:700;
-
     text-align:center;
 }
 
 .sub-title{
-
     font-size:20px;
-
     text-align:center;
-
     margin-top:10px;
 }
 
 .section-title{
-
     font-size:32px;
-
     font-weight:700;
-
     margin-bottom:20px;
 }
 
 .final-title{
-
     font-size:36px;
-
     font-weight:700;
-
     margin-bottom:15px;
 }
 
 .final-text{
-
     font-size:24px;
-
     line-height:1.8;
 }
 
 .stButton > button{
-
     width:100%;
-
     background:linear-gradient(
         90deg,
         #4A90E2,
         #50C9C3
     );
-
     color:white;
-
     border:none;
-
     border-radius:14px;
-
     padding:16px;
-
     font-size:20px;
-
     font-weight:bold;
 }
 
 .stButton > button:hover{
-
     transform:scale(1.02);
 }
 
@@ -222,183 +183,303 @@ def clean_text(text):
     return text
 
 # ====================================
-# EXPLANATION ENGINE
+# CONTEXT DETECTION ENGINE
 # ====================================
 
-def generate_explanation(text, confidence):
+def detect_context(text):
 
     text = text.lower()
 
-    indicators = []
+    context_map = {
 
-    stress_keywords = [
-        "anxious",
-        "stress",
-        "worried",
-        "pressure",
-        "panic",
-        "overthinking",
-        "restless",
-        "exhausted"
-    ]
+        "career":
+        [
+            "job",
+            "offer",
+            "career",
+            "company",
+            "layoff",
+            "placement",
+            "internship",
+            "future"
+        ],
 
-    depression_keywords = [
-        "sad",
-        "lonely",
-        "hopeless",
-        "isolated",
-        "empty",
-        "worthless",
-        "crying",
-        "lost interest"
-    ]
+        "academic":
+        [
+            "exam",
+            "study",
+            "marks",
+            "college",
+            "assignment",
+            "semester",
+            "result"
+        ],
 
-    normal_keywords = [
-        "happy",
-        "peaceful",
-        "motivated",
-        "calm",
-        "better",
-        "relaxed"
-    ]
+        "relationship":
+        [
+            "breakup",
+            "relationship",
+            "partner",
+            "love",
+            "ignored",
+            "alone"
+        ],
 
-    for word in stress_keywords:
+        "financial":
+        [
+            "money",
+            "financial",
+            "loan",
+            "debt",
+            "salary"
+        ],
 
-        if word in text:
+        "burnout":
+        [
+            "tired",
+            "burnout",
+            "exhausted",
+            "drained",
+            "overworked"
+        ]
+    }
 
-            indicators.append(
-                f"{word} (Stress Indicator)"
-            )
+    detected_contexts = []
 
-    for word in depression_keywords:
+    for context, keywords in context_map.items():
 
-        if word in text:
+        if any(word in text for word in keywords):
 
-            indicators.append(
-                f"{word} (Depression Indicator)"
-            )
+            detected_contexts.append(context)
 
-    for word in normal_keywords:
+    return detected_contexts
 
-        if word in text:
+# ====================================
+# IMPROVED EXPLANATION ENGINE
+# ====================================
 
-            indicators.append(
-                f"{word} (Normal Indicator)"
-            )
+def generate_explanation(
+    text,
+    prediction,
+    confidence
+):
 
-    if confidence >= 85:
+    contexts = detect_context(text)
 
-        confidence_text = (
-            "The model showed high confidence in this assessment."
+    explanation_parts = []
+
+    if prediction == "Stress":
+
+        explanation_parts.append(
+            "The emotional analysis detected stress-related emotional patterns."
         )
 
-    elif confidence >= 60:
+    elif prediction == "Depression":
 
-        confidence_text = (
-            "The model detected moderate emotional patterns."
+        explanation_parts.append(
+            "The emotional analysis detected emotionally concerning depressive patterns."
         )
 
     else:
 
-        confidence_text = (
-            "Some emotional overlap was observed during analysis."
+        explanation_parts.append(
+            "The emotional analysis detected emotionally stable patterns."
         )
 
-    if indicators:
+    # ====================================
+    # CONTEXTUAL INTERPRETATION
+    # ====================================
 
-        return (
-            "Detected emotional indicators: "
-            + ", ".join(indicators)
-            + ". "
-            + confidence_text
+    if "career" in contexts:
+
+        explanation_parts.append(
+            "The response also reflects anxiety related to career stability and professional uncertainty."
+        )
+
+    if "academic" in contexts:
+
+        explanation_parts.append(
+            "Academic pressure and performance-related stress indicators were observed."
+        )
+
+    if "relationship" in contexts:
+
+        explanation_parts.append(
+            "Relationship-related emotional sensitivity and social distress patterns were identified."
+        )
+
+    if "financial" in contexts:
+
+        explanation_parts.append(
+            "Financial uncertainty and future-security concerns were reflected in the response."
+        )
+
+    if "burnout" in contexts:
+
+        explanation_parts.append(
+            "The response indicates emotional exhaustion and mental fatigue patterns."
+        )
+
+    # ====================================
+    # CONFIDENCE ANALYSIS
+    # ====================================
+
+    if confidence >= 90:
+
+        explanation_parts.append(
+            "The model showed high confidence during contextual emotional interpretation."
+        )
+
+    elif confidence >= 70:
+
+        explanation_parts.append(
+            "Moderate contextual emotional confidence was observed."
         )
 
     else:
 
-        return (
-            "The prediction was based on overall sentence-level emotional patterns. "
-            + confidence_text
+        explanation_parts.append(
+            "Some emotional overlap was observed during prediction."
         )
 
+    return " ".join(explanation_parts)
+
 # ====================================
-# SUGGESTION ENGINE
+# IMPROVED SUGGESTION ENGINE
 # ====================================
 
-def generate_suggestion(prediction):
+def generate_suggestion(
+    prediction,
+    text
+):
+
+    contexts = detect_context(text)
+
+    suggestions = []
 
     if prediction == "Normal":
 
-        return (
-            "Maintain healthy routines, proper sleep, physical activity, and positive social interaction."
+        suggestions.append(
+            "Continue maintaining healthy routines, sleep balance, and positive social interaction."
         )
 
     elif prediction == "Stress":
 
-        return (
-            "Consider stress-management techniques, work-life balance, and relaxation exercises."
+        suggestions.append(
+            "Consider stress-management strategies, emotional breaks, and maintaining work-life balance."
         )
 
     else:
 
-        return (
-            "Consider emotional support, healthy routines, and talking to trusted individuals if emotional distress continues."
+        suggestions.append(
+            "Consider emotional support, healthy routines, and discussing concerns with trusted individuals."
         )
 
+    # ====================================
+    # CONTEXT BASED SUGGESTIONS
+    # ====================================
+
+    if "career" in contexts:
+
+        suggestions.append(
+            "Career uncertainty can create emotional pressure. Focusing on controllable goals and professional planning may help reduce anxiety."
+        )
+
+    if "academic" in contexts:
+
+        suggestions.append(
+            "Academic stress can often be reduced through structured scheduling and realistic study planning."
+        )
+
+    if "relationship" in contexts:
+
+        suggestions.append(
+            "Healthy communication and emotional support from trusted individuals may improve emotional stability."
+        )
+
+    if "financial" in contexts:
+
+        suggestions.append(
+            "Financial concerns may feel overwhelming during uncertainty. Practical planning and support systems may help reduce stress."
+        )
+
+    if "burnout" in contexts:
+
+        suggestions.append(
+            "Mental exhaustion may improve with proper rest, sleep, reduced overload, and relaxation activities."
+        )
+
+    return " ".join(suggestions)
+
 # ====================================
-# FINAL CONCLUSION ENGINE
+# IMPROVED FINAL CONCLUSION
 # ====================================
 
 def generate_final_conclusion(
     prediction,
     confidence,
-    questionnaire_level
+    questionnaire_level,
+    text
 ):
+
+    contexts = detect_context(text)
 
     if prediction == "Normal":
 
         conclusion = (
-            "The emotional analysis indicates emotionally stable patterns."
+            "The overall emotional analysis indicates emotionally stable behavioral patterns."
         )
 
     elif prediction == "Stress":
 
         conclusion = (
-            "The emotional analysis detected noticeable stress-related emotional patterns."
+            "The overall emotional analysis detected noticeable stress-related emotional patterns."
         )
 
     else:
 
         conclusion = (
-            "The emotional analysis detected elevated emotional concern along with depression-related emotional patterns."
+            "The overall emotional analysis detected elevated emotional concern with depression-related indicators."
         )
 
-    if confidence >= 85:
+    if contexts:
 
-        confidence_text = (
-            "The model showed high confidence in this assessment."
+        context_text = (
+            " Contextual emotional signals related to "
+            + ", ".join(contexts)
+            + " were also identified."
         )
 
-    elif confidence >= 60:
+    else:
+
+        context_text = ""
+
+    if confidence >= 90:
 
         confidence_text = (
-            "The model showed moderate confidence in this assessment."
+            " The NLP model showed high confidence during analysis."
+        )
+
+    elif confidence >= 70:
+
+        confidence_text = (
+            " Moderate emotional confidence was observed during prediction."
         )
 
     else:
 
         confidence_text = (
-            "Some emotional overlap was observed during analysis."
+            " Some emotional overlap was detected during analysis."
         )
 
     questionnaire_text = (
-        f"Questionnaire responses also suggested {questionnaire_level.lower()}."
+        f" Questionnaire assessment suggested {questionnaire_level.lower()}."
     )
 
     return (
         conclusion
-        + " "
+        + context_text
         + confidence_text
-        + " "
         + questionnaire_text
     )
 
@@ -410,7 +491,7 @@ with st.sidebar:
 
     st.header("📌 Project Information")
 
-    st.success("Model Accuracy: 94%")
+    st.success("Model Accuracy: 93.6%")
 
     st.subheader("⚙ Technologies Used")
 
@@ -534,10 +615,6 @@ if predict_button:
         "Analyzing emotional patterns..."
     ):
 
-        # ====================================
-        # QUESTIONNAIRE SCORE
-        # ====================================
-
         total_score = (
 
             normal_score_map[q1]
@@ -550,10 +627,6 @@ if predict_button:
 
             + normal_score_map[q7]
         )
-
-        # ====================================
-        # QUESTIONNAIRE INTERPRETATION
-        # ====================================
 
         if total_score <= 3:
 
@@ -578,10 +651,6 @@ if predict_button:
             questionnaire_level = (
                 "high emotional concern"
             )
-
-        # ====================================
-        # NLP PREDICTION
-        # ====================================
 
         cleaned = clean_text(user_text)
 
@@ -627,22 +696,21 @@ if predict_button:
 
             explanation = generate_explanation(
                 cleaned,
+                predicted_label,
                 confidence
             )
 
             suggestion = generate_suggestion(
-                predicted_label
+                predicted_label,
+                cleaned
             )
 
             final_conclusion = generate_final_conclusion(
                 predicted_label,
                 confidence,
-                questionnaire_level
+                questionnaire_level,
+                cleaned
             )
-
-            # ====================================
-            # RESULT DISPLAY
-            # ====================================
 
             st.markdown(
                 '<div class="result-container">',
@@ -694,10 +762,6 @@ if predict_button:
             st.success(
                 suggestion
             )
-
-            # ====================================
-            # FINAL CONCLUSION
-            # ====================================
 
             st.markdown(
                 '<div class="final-box">',
