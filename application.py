@@ -176,14 +176,22 @@ def clean_text(text):
 
     text = text.lower()
 
-    text = re.sub(r'[^a-zA-Z\s]', '', text)
+    text = re.sub(
+        r'[^a-zA-Z\s]',
+        '',
+        text
+    )
 
-    text = re.sub(r'\s+', ' ', text).strip()
+    text = re.sub(
+        r'\s+',
+        ' ',
+        text
+    ).strip()
 
     return text
 
 # ====================================
-# CONTEXT DETECTION ENGINE
+# ADVANCED CONTEXT DETECTION
 # ====================================
 
 def detect_context(text):
@@ -192,8 +200,7 @@ def detect_context(text):
 
     context_map = {
 
-        "career":
-        [
+        "career": [
             "job",
             "offer",
             "career",
@@ -201,48 +208,91 @@ def detect_context(text):
             "layoff",
             "placement",
             "internship",
-            "future"
+            "future",
+            "promotion"
         ],
 
-        "academic":
-        [
+        "academic": [
             "exam",
             "study",
             "marks",
             "college",
             "assignment",
             "semester",
-            "result"
+            "result",
+            "cgpa"
         ],
 
-        "relationship":
-        [
+        "relationship": [
             "breakup",
             "relationship",
             "partner",
             "love",
             "ignored",
-            "alone"
+            "alone",
+            "friend"
         ],
 
-        "financial":
-        [
+        "financial": [
             "money",
             "financial",
             "loan",
             "debt",
-            "salary"
+            "salary",
+            "expenses"
         ],
 
-        "burnout":
-        [
+        "burnout": [
             "tired",
             "burnout",
             "exhausted",
             "drained",
             "overworked"
+        ],
+
+        "health": [
+            "health",
+            "disease",
+            "pain",
+            "illness",
+            "hospital"
+        ],
+
+        "family": [
+            "family",
+            "parents",
+            "mother",
+            "father",
+            "home"
         ]
     }
+
+    positive_words = [
+        "confident",
+        "hopeful",
+        "motivated",
+        "optimistic",
+        "determined",
+        "calm",
+        "fine",
+        "okay",
+        "stable",
+        "positive",
+        "happy",
+        "excited"
+    ]
+
+    negative_words = [
+        "worried",
+        "afraid",
+        "scared",
+        "hopeless",
+        "lonely",
+        "sad",
+        "depressed",
+        "anxious",
+        "stressed"
+    ]
 
     detected_contexts = []
 
@@ -252,10 +302,22 @@ def detect_context(text):
 
             detected_contexts.append(context)
 
-    return detected_contexts
+    positive_detected = any(
+        word in text for word in positive_words
+    )
+
+    negative_detected = any(
+        word in text for word in negative_words
+    )
+
+    return (
+        detected_contexts,
+        positive_detected,
+        negative_detected
+    )
 
 # ====================================
-# IMPROVED EXPLANATION ENGINE
+# SMART EXPLANATION ENGINE
 # ====================================
 
 def generate_explanation(
@@ -264,9 +326,17 @@ def generate_explanation(
     confidence
 ):
 
-    contexts = detect_context(text)
+    (
+        contexts,
+        positive_detected,
+        negative_detected
+    ) = detect_context(text)
 
     explanation_parts = []
+
+    # ====================================
+    # PRIMARY EMOTIONAL ANALYSIS
+    # ====================================
 
     if prediction == "Stress":
 
@@ -277,7 +347,7 @@ def generate_explanation(
     elif prediction == "Depression":
 
         explanation_parts.append(
-            "The emotional analysis detected emotionally concerning depressive patterns."
+            "The emotional analysis detected emotionally concerning depressive indicators."
         )
 
     else:
@@ -287,25 +357,47 @@ def generate_explanation(
         )
 
     # ====================================
+    # CONTRADICTION HANDLING
+    # ====================================
+
+    if positive_detected and negative_detected:
+
+        explanation_parts.append(
+            "The response contains both emotional concern and positive coping indicators, suggesting emotional resilience during challenging situations."
+        )
+
+    elif positive_detected:
+
+        explanation_parts.append(
+            "Positive emotional indicators such as confidence, optimism, or emotional stability were observed."
+        )
+
+    elif negative_detected:
+
+        explanation_parts.append(
+            "The response reflected emotional concern and psychological pressure indicators."
+        )
+
+    # ====================================
     # CONTEXTUAL INTERPRETATION
     # ====================================
 
     if "career" in contexts:
 
         explanation_parts.append(
-            "The response also reflects anxiety related to career stability and professional uncertainty."
+            "Career-related thoughts and future uncertainty patterns were identified."
         )
 
     if "academic" in contexts:
 
         explanation_parts.append(
-            "Academic pressure and performance-related stress indicators were observed."
+            "Academic pressure and performance-related emotional indicators were observed."
         )
 
     if "relationship" in contexts:
 
         explanation_parts.append(
-            "Relationship-related emotional sensitivity and social distress patterns were identified."
+            "Relationship-related emotional sensitivity patterns were identified."
         )
 
     if "financial" in contexts:
@@ -320,8 +412,20 @@ def generate_explanation(
             "The response indicates emotional exhaustion and mental fatigue patterns."
         )
 
+    if "health" in contexts:
+
+        explanation_parts.append(
+            "Health-related emotional concern and psychological stress indicators were observed."
+        )
+
+    if "family" in contexts:
+
+        explanation_parts.append(
+            "Family-related emotional attachment and concern patterns were identified."
+        )
+
     # ====================================
-    # CONFIDENCE ANALYSIS
+    # CONFIDENCE INTERPRETATION
     # ====================================
 
     if confidence >= 90:
@@ -345,7 +449,7 @@ def generate_explanation(
     return " ".join(explanation_parts)
 
 # ====================================
-# IMPROVED SUGGESTION ENGINE
+# SMART SUGGESTION ENGINE
 # ====================================
 
 def generate_suggestion(
@@ -353,14 +457,18 @@ def generate_suggestion(
     text
 ):
 
-    contexts = detect_context(text)
+    (
+        contexts,
+        positive_detected,
+        negative_detected
+    ) = detect_context(text)
 
     suggestions = []
 
     if prediction == "Normal":
 
         suggestions.append(
-            "Continue maintaining healthy routines, sleep balance, and positive social interaction."
+            "Continue maintaining healthy routines, emotional balance, and positive social interaction."
         )
 
     elif prediction == "Stress":
@@ -375,9 +483,11 @@ def generate_suggestion(
             "Consider emotional support, healthy routines, and discussing concerns with trusted individuals."
         )
 
-    # ====================================
-    # CONTEXT BASED SUGGESTIONS
-    # ====================================
+    if positive_detected:
+
+        suggestions.append(
+            "Your response also reflects positive coping ability and emotional resilience."
+        )
 
     if "career" in contexts:
 
@@ -388,7 +498,7 @@ def generate_suggestion(
     if "academic" in contexts:
 
         suggestions.append(
-            "Academic stress can often be reduced through structured scheduling and realistic study planning."
+            "Academic stress may improve through structured scheduling and realistic study planning."
         )
 
     if "relationship" in contexts:
@@ -406,13 +516,25 @@ def generate_suggestion(
     if "burnout" in contexts:
 
         suggestions.append(
-            "Mental exhaustion may improve with proper rest, sleep, reduced overload, and relaxation activities."
+            "Mental exhaustion may improve with proper rest, sleep, reduced workload, and relaxation activities."
+        )
+
+    if "health" in contexts:
+
+        suggestions.append(
+            "Maintaining physical health routines and proper consultation may help reduce emotional stress."
+        )
+
+    if "family" in contexts:
+
+        suggestions.append(
+            "Open communication with trusted family members may help improve emotional comfort and support."
         )
 
     return " ".join(suggestions)
 
 # ====================================
-# IMPROVED FINAL CONCLUSION
+# SMART FINAL CONCLUSION
 # ====================================
 
 def generate_final_conclusion(
@@ -422,7 +544,11 @@ def generate_final_conclusion(
     text
 ):
 
-    contexts = detect_context(text)
+    (
+        contexts,
+        positive_detected,
+        negative_detected
+    ) = detect_context(text)
 
     if prediction == "Normal":
 
@@ -442,46 +568,55 @@ def generate_final_conclusion(
             "The overall emotional analysis detected elevated emotional concern with depression-related indicators."
         )
 
-    if contexts:
+    if positive_detected and negative_detected:
 
-        context_text = (
-            " Contextual emotional signals related to "
-            + ", ".join(contexts)
-            + " were also identified."
+        conclusion += (
+            " The response also reflected emotional resilience despite ongoing concerns."
         )
 
-    else:
+    elif positive_detected:
 
-        context_text = ""
+        conclusion += (
+            " Positive emotional coping indicators were observed during analysis."
+        )
+
+    elif negative_detected:
+
+        conclusion += (
+            " Emotional concern indicators were consistently observed."
+        )
+
+    if contexts:
+
+        conclusion += (
+            " Contextual emotional signals related to "
+            + ", ".join(contexts)
+            + " were identified."
+        )
 
     if confidence >= 90:
 
-        confidence_text = (
-            " The NLP model showed high confidence during analysis."
+        conclusion += (
+            " The NLP model showed high confidence during prediction."
         )
 
     elif confidence >= 70:
 
-        confidence_text = (
-            " Moderate emotional confidence was observed during prediction."
+        conclusion += (
+            " Moderate emotional confidence was observed during analysis."
         )
 
     else:
 
-        confidence_text = (
-            " Some emotional overlap was detected during analysis."
+        conclusion += (
+            " Some emotional overlap was detected during prediction."
         )
 
-    questionnaire_text = (
+    conclusion += (
         f" Questionnaire assessment suggested {questionnaire_level.lower()}."
     )
 
-    return (
-        conclusion
-        + context_text
-        + confidence_text
-        + questionnaire_text
-    )
+    return conclusion
 
 # ====================================
 # SIDEBAR
